@@ -1,130 +1,107 @@
-import { useEffect, useState } from "react";
-import { StyleSheet, Text, View, Image, TouchableOpacity } from "react-native";
+import React, { useEffect, useState } from "react";
+import { View, ActivityIndicator } from "react-native";
 import * as WebBrowser from "expo-web-browser";
 import * as Google from "expo-auth-session/providers/google";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import StackNavigator from "./src/screens/navigation/StackNavigator"; // Importa el StackNavigator
 
 WebBrowser.maybeCompleteAuthSession();
 
 export default function App() {
-  const [token, setToken] = useState(null);
   const [userInfo, setUserInfo] = useState(null);
-
+  const [isLoading, setIsLoading] = useState(true);
   const [request, response, promptAsync] = Google.useAuthRequest({
     webClientId: "188317837825-1uf718jet4ijsukqttitkj6v0bg831rc.apps.googleusercontent.com",
     androidClientId: "188317837825-cudcnpnjl9bmnicr43r4ga3euc00bejs.apps.googleusercontent.com",
   });
 
   useEffect(() => {
-    console.log("response", response); // Log la respuesta de Google
-    handleEffect();
-  }, [response]); // Trigger only when response changes
+    handleAuthResponse(response);
+  }, [response]);
 
-  async function handleEffect() {
-    const user = await getLocalUser();
-    console.log("user", user);
-    if (!user && response?.type === "success") {
-      getUserInfo(response.authentication.accessToken);
-    } else if (user) {
-      setUserInfo(user);
-      console.log("User loaded locally");
-    }
-  }
+  useEffect(() => {
+    const checkUser = async () => {
+      const user = await getLocalUser();
+      if (user) {
+        setUserInfo(user);
+      }
+      setIsLoading(false);
+    };
+    checkUser();
+  }, []);
 
   const getLocalUser = async () => {
     const data = await AsyncStorage.getItem("@user");
-    if (!data) return null;
-    return JSON.parse(data);
+    return data ? JSON.parse(data) : null;
   };
 
-  const getUserInfo = async (token) => {
-    if (!token) return;
-    try {
-      const response = await fetch(
-        "https://www.googleapis.com/userinfo/v2/me",
-        {
-          headers: { Authorization: `Bearer ${token}` },
+      const registerUserWithBackend = async (user) => {
+      try {
+        console.log("Enviando solicitud POST a backend...");
+        console.log("Datos del usuario:", {
+          userId: user.id,
+          email: user.email,
+          givenName: user.given_name,
+          profileImageUrl: user.picture,
+        });
+    
+        const response = await fetch('http://192.168.1.168:8080/api/usuarios', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            userId: user.id,
+            email: user.email,
+            givenName: user.given_name,
+            profileImageUrl: user.picture,
+          }),
+        });
+    
+        console.log("Respuesta del backend:", response);
+        if (!response.ok) {
+          throw new Error(`Error al registrar usuario: ${response.statusText}`);
         }
-      );
+    
+        const responseData = await response.json();
+        console.log('Usuario registrado:', responseData);
+      } catch (error) {
+        console.error('Error al registrar usuario:', error);
+        alert('Error al registrar usuario: ' + error.message); // Alerta en la app para ver el error
+      }
+    };
 
-      const user = await response.json();
-      console.log("User Info JSON:", user); // Nuevo console.log para ver toda la información del usuario
+  const handleAuthResponse = async (response) => {
+    if (response?.type === "success") {
+      const token = response.authentication.accessToken;
+      const user = await getUserInfo(token);
       await AsyncStorage.setItem("@user", JSON.stringify(user));
+      await registerUserWithBackend(user);
       setUserInfo(user);
-    } catch (error) {
-      console.error("Error fetching user info", error);
     }
   };
 
+  const getUserInfo = async (token) => {
+    const response = await fetch("https://www.googleapis.com/userinfo/v2/me", {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    return await response.json();
+  };
+
+  const handleLogout = async () => {
+    await AsyncStorage.removeItem("@user");
+    setUserInfo(null);
+  };
+
+  if (isLoading) {
+    return (
+      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+        <ActivityIndicator size="large" color="#4285F4" />
+      </View>
+    );
+  }
+
   return (
-    <View style={styles.container}>
-      {!userInfo ? (
-        <TouchableOpacity
-          disabled={!request}
-          onPress={() => {
-            promptAsync();
-          }}
-          style={styles.button}
-        >
-          <Text style={styles.buttonText}>Sign in with Google</Text>
-        </TouchableOpacity>
-      ) : (
-        <View style={styles.card}>
-          {userInfo?.picture && (
-            <Image source={{ uri: userInfo?.picture }} style={styles.image} />
-          )}
-          <Text style={styles.text}>WELCOME</Text>
-          <Text style={styles.text}>
-          {userInfo.given_name}
-          </Text>
-        </View>
-      )}
-      <TouchableOpacity
-        onPress={async () => {
-          await AsyncStorage.removeItem("@user");
-          setUserInfo(null); // Clear local state after removal
-        }}
-        style={styles.button}
-      >
-        <Text style={styles.buttonText}>Remove local store</Text>
-      </TouchableOpacity>
-    </View>
+    <StackNavigator userInfo={userInfo} onLogout={handleLogout} promptAsync={promptAsync} request={request} />
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#fff",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  text: {
-    fontSize: 20,
-    fontWeight: "bold",
-  },
-  card: {
-    borderWidth: 1,
-    borderRadius: 15,
-    padding: 15,
-  },
-  image: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    justifyContent: "center",
-  },
-  button: {
-    backgroundColor: "#4285F4",
-    padding: 10,
-    borderRadius: 10,
-    marginVertical: 10,
-  },
-  buttonText: {
-    color: "white",
-    fontSize: 18,
-    fontWeight: "bold",
-  },
-});
-
-

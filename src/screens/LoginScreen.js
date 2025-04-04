@@ -1,52 +1,54 @@
-import React, { useState } from 'react';
-import { View, Text, Button, ActivityIndicator } from 'react-native';
-import { useGoogleAuth } from '../config/authConfig';  // Usamos el hook de autenticación
-import { saveJwtToStorage } from '../utils/jwtStorage';  // Función para guardar el JWT en AsyncStorage
+import React from "react";
+import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 
-const LoginScreen = ({ navigation }) => {
-  const { loginWithGoogle, request, response } = useGoogleAuth();  // Usamos el hook de Google Auth
-  const [loading, setLoading] = useState(false);
-  const [errorMessage, setErrorMessage] = useState(null);
-
-  const handleGoogleLogin = async () => {
-    setLoading(true);
-    setErrorMessage(null); // Resetear cualquier mensaje de error
-
-    try {
-      const result = await loginWithGoogle();
-      console.log("🔍 Resultado de Google Auth:", result);  // Ver qué devuelve realmente
-      if (result?.type === 'success' && result?.params?.id_token) {
-        const { id_token } = result.params;
-        console.log("✅ Token de Google recibido:", id_token);
-  
-        // Guardamos el JWT en AsyncStorage
-        await saveJwtToStorage(id_token);
-  
-        // Redirigimos al Home si el token es válido
-        navigation.replace('Home');
-      } else {
-        throw new Error('No se obtuvo un id_token válido de Google');
-      }
-    } catch (error) {
-      console.error('Error en login con Google: ', error);
-      setErrorMessage('Error de autenticación con Google. Intenta nuevamente.');
-      setLoading(false);
-    }
-  };
-
+// Esta es la pantalla de login
+const LoginScreen = ({ promptAsync, request }) => {
   return (
-    <View>
-      <Text>Login with Google</Text>
-      <Button 
-        title="Login with Google"
-        onPress={handleGoogleLogin}
+    <View style={styles.container}>
+      <Text style={styles.title}>Bienvenido a la aplicación</Text>
+      <Text style={styles.subtitle}>Inicia sesión con tu cuenta de Google</Text>
+
+      {/* Botón para iniciar sesión con Google */}
+      <TouchableOpacity
+        style={styles.loginButton}
+        onPress={() => promptAsync()} // Activar el flujo de Google
         disabled={!request}
-      />
-      {loading && <ActivityIndicator size="large" />}
-      {errorMessage && <Text>{errorMessage}</Text>}
+      >
+        <Text style={styles.loginText}>Iniciar sesión con Google</Text>
+      </TouchableOpacity>
     </View>
   );
 };
 
-export default LoginScreen;
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 20,
+    backgroundColor: "#f0f0f0",
+  },
+  title: {
+    fontSize: 32,
+    fontWeight: "bold",
+    marginBottom: 20,
+  },
+  subtitle: {
+    fontSize: 18,
+    marginBottom: 40,
+    color: "#666",
+  },
+  loginButton: {
+    backgroundColor: "#4285F4", // Color de Google
+    paddingVertical: 12,
+    paddingHorizontal: 40,
+    borderRadius: 5,
+  },
+  loginText: {
+    color: "#fff",
+    fontSize: 18,
+    fontWeight: "bold",
+  },
+});
 
+export default LoginScreen;
