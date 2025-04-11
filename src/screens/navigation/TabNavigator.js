@@ -15,7 +15,7 @@ import CustomTabBarIcon from '../../components/CustomTabBarIcon';
 const Tab = createBottomTabNavigator();
 
 const TabNavigator = ({ userInfo, onLogout }) => {
-  const { given_name, id, picture } = userInfo;
+  const { given_name, id, picture, email } = userInfo;
 
   return (
     <Tab.Navigator
@@ -41,7 +41,7 @@ const TabNavigator = ({ userInfo, onLogout }) => {
         {() => (
           <HomeScreen
             route={{
-              params: { given_name, picture }  // Pasamos los valores en route.params
+              params: { given_name, picture, id , email}  // Pasamos los valores en route.params
             }}
             onLogout={onLogout}  // Pasamos onLogout
           />
@@ -64,7 +64,7 @@ const TabNavigator = ({ userInfo, onLogout }) => {
         {() => (
           <AddPublicationScreen
             route={{
-              params: { id }  // Pasamos el id correctamente aquí
+              params: { given_name, picture, id , email}  // Pasamos el id correctamente aquí
             }}
           />
         )}
@@ -85,10 +85,8 @@ const TabNavigator = ({ userInfo, onLogout }) => {
         }}
       />
 
-      <Tab.Screen
+<Tab.Screen
         name="Perfil"
-        component={ProfileScreen}
-        initialParams={{ given_name, id, picture }}  // Pasamos parámetros a la pantalla de Perfil
         options={{
           tabBarIcon: ({ focused }) => (
             <CustomTabBarIcon
@@ -99,7 +97,15 @@ const TabNavigator = ({ userInfo, onLogout }) => {
             />
           ),
         }}
-      />
+      >
+        {() => (
+          <ProfileScreen
+            route={{
+              params: { given_name, id, picture , email}  // Pasamos correctamente los parámetros
+            }}
+          />
+        )}
+      </Tab.Screen>
     </Tab.Navigator>
   );
 };
@@ -110,6 +116,7 @@ TabNavigator.propTypes = {
     given_name: PropTypes.string.isRequired,
     id: PropTypes.string.isRequired,
     picture: PropTypes.string.isRequired,
+    email: PropTypes.string.isRequired
   }).isRequired,
   onLogout: PropTypes.func.isRequired,
 };

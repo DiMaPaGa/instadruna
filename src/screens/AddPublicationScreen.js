@@ -3,7 +3,7 @@ import { View, Text, TextInput, TouchableOpacity, Image, StyleSheet, Alert, Scro
 import * as ImagePicker from 'expo-image-picker';
 
 const AddPublicationScreen = ({ route }) => {
-  const { id } = route.params || {};
+  const { id, givenName, profileImageUrl, email } = route.params || {};
 
   const [title, setTitle] = useState('');
   const [comment, setComment] = useState('');
@@ -105,8 +105,15 @@ const AddPublicationScreen = ({ route }) => {
         imageUrl = defaultImage;
       }
 
+      const usuarioData = {
+        userId: id,  // Este debe ser el ID de Google del usuario logueado
+        email: email,  // Asegúrate de que esté disponible
+        givenName: givenName,// Asegúrate de que esté disponible
+        profileImageUrl: profileImageUrl, // Asegúrate de que esté disponible
+      };
+
       const publicationData = {
-        userId: id,  // Asegúrate de usar el id del usuario logueado
+        autor: usuarioData,  // Asegúrate de usar el id del usuario logueado
         titulo: title,
         comentario: comment,
         imageUrl: imageUrl,
@@ -126,21 +133,42 @@ const AddPublicationScreen = ({ route }) => {
       console.log("Respuesta como texto:", responseText);
 
       let responseData = {};
-      if (responseText) {
-        responseData = JSON.parse(responseText);  // Solo parsear si hay contenido
+      try{
+        if (responseText) {
+          responseData = JSON.parse(responseText);  // Solo parsear si hay contenido
+        } 
+      } catch (error) {
+        console.error('Error al parsear la respuesta:', error);
+        Alert.alert('Error', 'Error al procesar la respuesta del servidor.');
+        return;
       }
 
       console.log("Datos de la respuesta:", responseData);
 
       if (response.ok) {
         console.log('Publicación creada con éxito');
-        Alert.alert('Éxito', 'Publicación creada con éxito.');
-        setTitle('');
-        setComment('');
-        setSelectedImage(null);
+        Alert.alert('Éxito', 'Publicación creada con éxito.', [
+          {
+            text: 'OK',
+            onPress: () => {
+              setTitle('');
+              setComment('');
+              setSelectedImage(null);
+              navigation.navigate('Home', {
+                id: id,
+                given_name: givenName,
+                picture: profileImageUrl,
+              });
+            },
+          },
+        ]);
       } else {
-        console.log('Error al crear la publicación');
-        Alert.alert('Error', 'No se pudo crear la publicación.');
+          if (response.status === 404) {
+            Alert.alert('Error', 'El usuario no existe.');
+          } else {
+            console.log('Error al crear la publicación');
+            Alert.alert('Error', 'No se pudo crear la publicación.');
+          }
       }
     } catch (error) {
       console.error('Ocurrió un error al crear la publicación:', error);
