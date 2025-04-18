@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, TouchableOpacity, Image, StyleSheet, Alert, ScrollView } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
+import { useNavigation } from '@react-navigation/native';
+
 
 const AddPublicationScreen = ({ route }) => {
   const { id, givenName, profileImageUrl, email } = route.params || {};
-
+  const navigation = useNavigation();
   const [title, setTitle] = useState('');
   const [comment, setComment] = useState('');
   const [selectedImage, setSelectedImage] = useState(null);
@@ -17,8 +19,8 @@ const AddPublicationScreen = ({ route }) => {
   // Solicitar permisos para acceder a la cámara y galería
   useEffect(() => {
     const getPermissions = async () => {
-      const cameraPermission = await ImagePicker.requestCameraPermissionsAsync();
-      const libraryPermission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      await ImagePicker.requestCameraPermissionsAsync();
+      await ImagePicker.requestMediaLibraryPermissionsAsync();
     };
 
     getPermissions();
@@ -85,7 +87,7 @@ const AddPublicationScreen = ({ route }) => {
   };
 
   const handleCreatePublication = async () => {
-    if (!title || !comment) {
+    if (!title.trim() || !comment.trim()) {
       Alert.alert('Error', 'Por favor, completa todos los campos.');
       return;
     }
@@ -102,7 +104,8 @@ const AddPublicationScreen = ({ route }) => {
       } else {
         // Si no hay imagen, usamos la imagen predeterminada
         console.log('Usando imagen predeterminada...');
-        imageUrl = defaultImage;
+        const defaultImageUrl= 'https://res.cloudinary.com/dpqj4thfg/image/upload/v1744957782/addpub_use0xr.png';
+        imageUrl = defaultImageUrl;
       }
 
       const usuarioData = {

@@ -3,6 +3,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { NavigationContainer } from '@react-navigation/native';
 import LoginScreen from '../LoginScreen';
 import SinglePublication from '../SinglePublication';
+import TicketFormScreen from '../TicketFormScreen';
 import TabNavigator from './TabNavigator'; // Importa el TabNavigator
 
 const Stack = createNativeStackNavigator();
@@ -29,6 +30,17 @@ const StackNavigator = ({ userInfo, onLogout, promptAsync, request }) => {
             />
           )}
           </Stack.Screen>
+          
+          <Stack.Screen name="TicketFormScreen">
+            {({ route, navigation }) => (
+              <TicketFormScreen
+                route={route}
+                navigation={navigation}
+                userInfo={userInfo}
+              />
+            )}
+          </Stack.Screen>
+
           </>
         )}
       </Stack.Navigator>

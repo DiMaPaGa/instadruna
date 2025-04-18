@@ -73,6 +73,7 @@ const TabNavigator = ({ userInfo, onLogout }) => {
       <Tab.Screen
         name="Ajustes"
         component={TicketScreen}
+        initialParams={{ userId: id, givenName: given_name, email, picture }}
         options={{
           tabBarIcon: ({ focused }) => (
             <CustomTabBarIcon
