@@ -28,8 +28,12 @@ const fontSize = width * 0.1;
 
 const HomeScreen = ({ route, onLogout }) => {
   const navigation = useNavigation();
-  const { given_name, picture, id } = route.params || {};
-  const user_id = id;
+  const { givenName, profileImageUrl, userId  } = route.params || {};
+
+  useEffect(() => {
+    console.log("Datos del usuario:", givenName, profileImageUrl, userId);
+  }, [givenName, profileImageUrl, userId]);
+  
   const [publicaciones, setPublicaciones] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -40,7 +44,7 @@ const HomeScreen = ({ route, onLogout }) => {
   const fetchPublicaciones = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`${API_URL}/publicaciones/all/${user_id}`);
+      const response = await fetch(`${API_URL}/publicaciones/all/${userId}`);
   
       if (!response.ok) {
         throw new Error(`Error en la respuesta: ${response.statusText}`);
@@ -65,7 +69,7 @@ const HomeScreen = ({ route, onLogout }) => {
           },
           likes: likesArray,
           likesCount: likesArray.length,
-          hasLiked: likesArray.includes(user_id),
+          hasLiked: likesArray.includes(userId),
         };
       });
   
@@ -80,9 +84,9 @@ const HomeScreen = ({ route, onLogout }) => {
   
 
   useEffect(() => {
-    console.log("user_id recibido:", user_id);
+    console.log("user_id recibido:", userId);
     fetchPublicaciones();
-  }, [user_id]);
+  }, [userId]);
 
 
   const handleRefresh = async () => {
@@ -104,8 +108,8 @@ const HomeScreen = ({ route, onLogout }) => {
       const updatedPublicaciones = publicaciones.map(pub => {
         if (pub.id !== publicacionId) return pub;
         const updatedLikes = userHasLiked
-          ? pub.likes.filter(id => id !== user_id)
-          : [...(pub.likes || []), user_id];
+          ? pub.likes.filter(id => id !== userId)
+          : [...(pub.likes || []), userId];
   
         return {
           ...pub,
@@ -129,13 +133,13 @@ const HomeScreen = ({ route, onLogout }) => {
               "Content-Type": "application/json",
             },
             body: JSON.stringify({
-              userId: user_id,
+              userId: userId,
               publicacionId: publicacionId,
             }),
           };
   
       const url = userHasLiked
-        ? `${API_URL}/likes/${user_id}/${publicacionId}`
+        ? `${API_URL}/likes/${userId}/${publicacionId}`
         : `${API_URL}/likes`;
   
       console.log("Haciendo solicitud a:", url);
@@ -175,7 +179,7 @@ const HomeScreen = ({ route, onLogout }) => {
           </View>
         </View>
 
-        <TouchableOpacity onPress={() => navigation.navigate('SinglePublication', { id: item.id })}>
+        <TouchableOpacity onPress={() => navigation.navigate('SinglePublication', { id: item.id , userInfo:{userId, givenName, profileImageUrl}})}>
         <Image
             source={item.imageUrl
               ? { uri: item.imageUrl }
@@ -213,7 +217,7 @@ const HomeScreen = ({ route, onLogout }) => {
               <Image source={require('../../assets/images/logo.png')} style={styles.logo} />
             </View>
             <View style={styles.textContainer}>
-              <Text style={styles.nick}>{given_name}</Text>
+              <Text style={styles.nick}>{givenName}</Text>
               <Text style={[styles.titleHeader, { fontSize }]} adjustsFontSizeToFit numberOfLines={1}>VEDRUNA</Text>
             </View>
             <TouchableOpacity onPress={onLogout} style={[styles.logoutButton, { zIndex: 1 }]}>

@@ -7,10 +7,10 @@ const screenWidth = Dimensions.get("window").width;
 
 const API_BASE_URL = 'http://192.168.1.168:8080/api'; // Reemplaza por tu URL base de la API
 
-const SinglePublication = ({ route, userInfo }) => {
+const SinglePublication = ({ route }) => {
   const navigation = useNavigation();
-  const { id: publicacionId } = route.params || {}; // Obtener el ID de la publicación
-  const { id: userId, given_name: givenName, picture: userProfilePic } = userInfo; // Datos del usuario autenticado
+  const { id: publicacionId, userInfo } = route.params || {}; // Obtener el ID de la publicación
+  const { userId, givenName, profileImageUrl } = userInfo || {}; // Datos del usuario autenticado
 
   const [publicacion, setPublicacion] = useState(null);
   const [comentarios, setComentarios] = useState([]);
@@ -204,44 +204,6 @@ const SinglePublication = ({ route, userInfo }) => {
     </View>
   );
   
-  useEffect(() => {
-    if (!publicacionId) return;
-  
-    const fetchData = async () => {
-      try {
-        // Obtener la publicación
-        const pubRes = await fetch(`${API_BASE_URL}/publicaciones/${publicacionId}`);
-        const pubData = await pubRes.json();
-        setPublicacion(pubData);
-  
-        // Obtener el autor de la publicación
-        setAuthor(pubData.autor);
-  
-        // Obtener los comentarios, ya vienen con respuestas incluidas
-        const comRes = await fetch(`${API_BASE_URL}/comentarios/publicacion/${publicacionId}`);
-        const comData = await comRes.json();
-  
-        // Asegurarse de que comData sea un array
-        if (Array.isArray(comData)) {
-          setComentarios(comData);
-        } else {
-          setComentarios([]);  // Si no es un array, asignamos un array vacío
-        }
-  
-        // Obtener los likes
-        setLikes(pubData.likes || []);
-  
-        // Verificar si el usuario ya ha dado like
-        setUserLiked(pubData.likes?.some((like) => like.userId === userId));
-      } catch (error) {
-        console.error("Error al cargar los datos", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-  
-    fetchData();
-  }, [publicacionId, userId]);
   
   if (loading) return <Text>Cargando publicación...</Text>;
   if (!publicacion) return <Text>Error al cargar la publicación.</Text>;

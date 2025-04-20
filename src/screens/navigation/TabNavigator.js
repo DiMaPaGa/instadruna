@@ -15,7 +15,9 @@ import CustomTabBarIcon from '../../components/CustomTabBarIcon';
 const Tab = createBottomTabNavigator();
 
 const TabNavigator = ({ userInfo, onLogout }) => {
-  const { given_name, id, picture, email } = userInfo;
+  if (!userInfo) return null; // protección extra
+  
+  const { givenName, userId, profileImageUrl, email } = userInfo;
 
   return (
     <Tab.Navigator
@@ -41,7 +43,7 @@ const TabNavigator = ({ userInfo, onLogout }) => {
         {() => (
           <HomeScreen
             route={{
-              params: { given_name, picture, id , email}  // Pasamos los valores en route.params
+              params: { givenName, profileImageUrl, userId, email}  // Pasamos los valores en route.params
             }}
             onLogout={onLogout}  // Pasamos onLogout
           />
@@ -64,7 +66,7 @@ const TabNavigator = ({ userInfo, onLogout }) => {
         {() => (
           <AddPublicationScreen
             route={{
-              params: { given_name, picture, id , email}  // Pasamos el id correctamente aquí
+              params: { givenName, profileImageUrl, userId, email }  // Pasamos el id correctamente aquí
             }}
           />
         )}
@@ -73,7 +75,7 @@ const TabNavigator = ({ userInfo, onLogout }) => {
       <Tab.Screen
         name="Ajustes"
         component={TicketScreen}
-        initialParams={{ userId: id, givenName: given_name, email, picture }}
+        initialParams={{ userId, givenName, email, profileImageUrl }}
         options={{
           tabBarIcon: ({ focused }) => (
             <CustomTabBarIcon
@@ -86,27 +88,29 @@ const TabNavigator = ({ userInfo, onLogout }) => {
         }}
       />
 
-<Tab.Screen
-        name="Perfil"
-        options={{
-          tabBarIcon: ({ focused }) => (
-            <CustomTabBarIcon
-              focused={focused}
-              activeIcon={require('../../../assets/images/PerfilGreen.png')}
-              inactiveIcon={require('../../../assets/images/PerfilGris.png')}
-              label="Perfil"
-            />
-          ),
-        }}
-      >
-        {() => (
-          <ProfileScreen
-            route={{
-              params: { given_name, id, picture , email}  // Pasamos correctamente los parámetros
-            }}
+    <Tab.Screen
+      name="Perfil"
+      options={{
+        tabBarIcon: ({ focused }) => (
+          <CustomTabBarIcon
+            focused={focused}
+            activeIcon={require('../../../assets/images/PerfilGreen.png')}
+            inactiveIcon={require('../../../assets/images/PerfilGris.png')}
+            label="Perfil"
           />
-        )}
-      </Tab.Screen>
+        ),
+      }}
+    >
+      {() => (
+        <ProfileScreen
+          route={{
+            params: { userId, givenName, email, profileImageUrl },
+          }}
+          onLogout={onLogout}
+        />
+      )}
+    </Tab.Screen>
+        
     </Tab.Navigator>
   );
 };
@@ -114,12 +118,14 @@ const TabNavigator = ({ userInfo, onLogout }) => {
 // Validación de las propiedades de TabNavigator
 TabNavigator.propTypes = {
   userInfo: PropTypes.shape({
-    given_name: PropTypes.string.isRequired,
-    id: PropTypes.string.isRequired,
-    picture: PropTypes.string.isRequired,
-    email: PropTypes.string.isRequired
-  }).isRequired,
-  onLogout: PropTypes.func.isRequired,
+    userId: PropTypes.string,
+    email: PropTypes.string,
+    givenName: PropTypes.string,
+    profileImageUrl: PropTypes.string,
+  }),
+  onLogout: PropTypes.func,
+  promptAsync: PropTypes.func,
+  request: PropTypes.object,
 };
 
 const styles = StyleSheet.create({

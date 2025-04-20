@@ -5,7 +5,7 @@ import { useNavigation } from '@react-navigation/native';
 
 
 const AddPublicationScreen = ({ route }) => {
-  const { id, givenName, profileImageUrl, email } = route.params || {};
+  const { userId, givenName, profileImageUrl, email } = route.params || {};
   const navigation = useNavigation();
   const [title, setTitle] = useState('');
   const [comment, setComment] = useState('');
@@ -109,7 +109,7 @@ const AddPublicationScreen = ({ route }) => {
       }
 
       const usuarioData = {
-        userId: id,  // Este debe ser el ID de Google del usuario logueado
+        userId: userId,  // Este debe ser el ID de Google del usuario logueado
         email: email,  // Asegúrate de que esté disponible
         givenName: givenName,// Asegúrate de que esté disponible
         profileImageUrl: profileImageUrl, // Asegúrate de que esté disponible
@@ -158,9 +158,9 @@ const AddPublicationScreen = ({ route }) => {
               setComment('');
               setSelectedImage(null);
               navigation.navigate('Home', {
-                id: id,
-                given_name: givenName,
-                picture: profileImageUrl,
+                userId: userId,
+                givenName: givenName,
+                profileImageUrl: profileImageUrl,
               });
             },
           },

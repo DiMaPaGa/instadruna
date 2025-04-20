@@ -18,29 +18,28 @@ const StackNavigator = ({ userInfo, onLogout, promptAsync, request }) => {
           </Stack.Screen>
         ) : (
           <>
-          <Stack.Screen name="Main">
-            {() => <TabNavigator userInfo={userInfo} onLogout={onLogout} />}
-          </Stack.Screen>
-          <Stack.Screen name="SinglePublication">
-          {({ route, navigation }) => (
-            <SinglePublication
-              route={route}
-              navigation={navigation}
-              userInfo={userInfo}
-            />
-          )}
-          </Stack.Screen>
-          
-          <Stack.Screen name="TicketFormScreen">
-            {({ route, navigation }) => (
-              <TicketFormScreen
-                route={route}
-                navigation={navigation}
-                userInfo={userInfo}
-              />
-            )}
-          </Stack.Screen>
+            <Stack.Screen name="Main">
+              {() => <TabNavigator userInfo={userInfo} onLogout={onLogout} />}
+            </Stack.Screen>
+            <Stack.Screen name="SinglePublication">
+              {({ route, navigation }) => (
+                <SinglePublication
+                  route={route}
+                  navigation={navigation}
+                  userInfo={userInfo}
+                />
+              )}
+            </Stack.Screen>
 
+            <Stack.Screen name="TicketFormScreen">
+              {({ route, navigation }) => (
+                <TicketFormScreen
+                  route={route}
+                  navigation={navigation}
+                  userInfo={userInfo}
+                />
+              )}
+            </Stack.Screen>
           </>
         )}
       </Stack.Navigator>
