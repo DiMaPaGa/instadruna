@@ -13,16 +13,18 @@ const AddPublicationScreen = ({ route }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [privacy, setPrivacy] = useState('PUBLICA'); // Estado para la privacidad
 
-  // Imagen predeterminada si no se elige una
-  const defaultImage = require('../../assets/images/addpub.png');
+
 
   // Solicitar permisos para acceder a la cámara y galería
   useEffect(() => {
     const getPermissions = async () => {
-      await ImagePicker.requestCameraPermissionsAsync();
-      await ImagePicker.requestMediaLibraryPermissionsAsync();
+      const { status: cameraStatus } = await ImagePicker.requestCameraPermissionsAsync();
+      const { status: mediaLibraryStatus } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (cameraStatus !== 'granted' || mediaLibraryStatus !== 'granted') {
+        Alert.alert('Permiso denegado', 'Se necesitan permisos para acceder a la cámara y la galería.');
+      }
     };
-
+  
     getPermissions();
   }, []);
 
@@ -36,7 +38,7 @@ const AddPublicationScreen = ({ route }) => {
           text: 'Galería',
           onPress: async () => {
             const result = await ImagePicker.launchImageLibraryAsync({
-              mediaTypes: ImagePicker.MediaTypeOptions.Images,
+              mediaTypes: ImagePicker.MediaType.Images,
               allowsEditing: true,
               quality: 1,
             });
@@ -91,12 +93,12 @@ const AddPublicationScreen = ({ route }) => {
       Alert.alert('Error', 'Por favor, completa todos los campos.');
       return;
     }
-
+  
     setIsLoading(true);
-
+  
     try {
       let imageUrl = null;
-
+  
       // Si hay imagen seleccionada, la subimos
       if (selectedImage) {
         console.log('Subiendo imagen...');
@@ -104,52 +106,39 @@ const AddPublicationScreen = ({ route }) => {
       } else {
         // Si no hay imagen, usamos la imagen predeterminada
         console.log('Usando imagen predeterminada...');
-        const defaultImageUrl= 'https://res.cloudinary.com/dpqj4thfg/image/upload/v1744957782/addpub_use0xr.png';
+        const defaultImageUrl = 'https://res.cloudinary.com/dpqj4thfg/image/upload/v1744957782/addpub_use0xr.png';
         imageUrl = defaultImageUrl;
       }
-
+  
       const usuarioData = {
-        userId: userId,  // Este debe ser el ID de Google del usuario logueado
-        email: email,  // Asegúrate de que esté disponible
-        givenName: givenName,// Asegúrate de que esté disponible
-        profileImageUrl: profileImageUrl, // Asegúrate de que esté disponible
+        userId: userId,
+        email: email,
+        givenName: givenName,
+        profileImageUrl: profileImageUrl,
       };
-
+  
       const publicationData = {
-        autor: usuarioData,  // Asegúrate de usar el id del usuario logueado
+        autor: usuarioData,
         titulo: title,
         comentario: comment,
         imageUrl: imageUrl,
         privacidad: privacy,
       };
-
+  
       console.log('Datos de la publicación:', publicationData);
-
-      const response = await fetch('http://192.168.1.168:8080/api/publicaciones', { 
+  
+      const response = await fetch('http://192.168.1.168:8080/api/publicaciones', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(publicationData),
       });
-
-      const responseText = await response.text();  // Leer como texto
-
-      console.log("Respuesta como texto:", responseText);
-
-      let responseData = {};
-      try{
-        if (responseText) {
-          responseData = JSON.parse(responseText);  // Solo parsear si hay contenido
-        } 
-      } catch (error) {
-        console.error('Error al parsear la respuesta:', error);
-        Alert.alert('Error', 'Error al procesar la respuesta del servidor.');
-        return;
-      }
-
-      console.log("Datos de la respuesta:", responseData);
-
+  
+  
       if (response.ok) {
-        console.log('Publicación creada con éxito');
+        const responseData = await response.json();
+        console.log("Datos de la respuesta:", responseData);
+  
+        // Lógica después de recibir la respuesta correctamente
         Alert.alert('Éxito', 'Publicación creada con éxito.', [
           {
             text: 'OK',
@@ -166,12 +155,9 @@ const AddPublicationScreen = ({ route }) => {
           },
         ]);
       } else {
-          if (response.status === 404) {
-            Alert.alert('Error', 'El usuario no existe.');
-          } else {
-            console.log('Error al crear la publicación');
-            Alert.alert('Error', 'No se pudo crear la publicación.');
-          }
+        const responseText = await response.text();
+        console.error('Error en el servidor:', responseText);
+        Alert.alert('Error', 'No se pudo procesar la solicitud correctamente.');
       }
     } catch (error) {
       console.error('Ocurrió un error al crear la publicación:', error);
@@ -180,6 +166,7 @@ const AddPublicationScreen = ({ route }) => {
       setIsLoading(false);
     }
   };
+  
 
   return (
     <ScrollView contentContainerStyle={styles.container}>

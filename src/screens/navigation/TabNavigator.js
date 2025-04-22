@@ -8,6 +8,7 @@ import HomeScreen from '../HomeScreen';
 import TicketScreen from '../TicketScreen';
 import ProfileScreen from '../ProfileScreen';
 import AddPublicationScreen from '../AddPublicationScreen';
+import SuggestedUsersScreen from '../SuggestedUsersScreen'; 
 
 //componentes
 import CustomTabBarIcon from '../../components/CustomTabBarIcon';
@@ -82,7 +83,7 @@ const TabNavigator = ({ userInfo, onLogout }) => {
               focused={focused}
               activeIcon={require('../../../assets/images/ajustes.png')}
               inactiveIcon={require('../../../assets/images/ajustesgris.png')}
-              label="Ajustes"
+              label="Ticket"
             />
           ),
         }}
@@ -110,6 +111,23 @@ const TabNavigator = ({ userInfo, onLogout }) => {
         />
       )}
     </Tab.Screen>
+
+    {/* Nueva pantalla de sugerencias */}
+    <Tab.Screen
+        name="Suggestions"
+        options={{
+          tabBarIcon: ({ focused }) => (
+            <CustomTabBarIcon
+              focused={focused}
+              activeIcon={require('../../../assets/images/PeopleGreen.png')} // Cambia por el ícono de sugerencias
+              inactiveIcon={require('../../../assets/images/PeopleGris.png')} // Cambia por el ícono de sugerencias gris
+              label="People"
+            />
+          ),
+        }}
+      >
+        {() => <SuggestedUsersScreen userInfo={userInfo} />}
+      </Tab.Screen>
         
     </Tab.Navigator>
   );

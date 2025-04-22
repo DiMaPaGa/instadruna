@@ -42,18 +42,54 @@ export default function App() {
     return parsed;
   };
 
-  const handleAuthResponse = async (response) => {
-    if (response?.type === "success") {
-      const token = response.authentication.accessToken;
-      const user = await getUserInfo(token);
-      const adaptedUser = {
+  const registerUserWithBackend = async (user) => {
+    try {
+      console.log("Enviando solicitud POST a backend...");
+      console.log("Datos del usuario:", {
         userId: user.id,
         email: user.email,
         givenName: user.given_name,
         profileImageUrl: user.picture,
-      };
+      });
+  
+      const response = await fetch('http://192.168.1.168:8080/api/usuarios', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userId: user.id,
+          email: user.email,
+          givenName: user.given_name,
+          profileImageUrl: user.picture,
+        }),
+      });
+  
+      console.log("Respuesta del backend:", response);
+      if (!response.ok) {
+        throw new Error(`Error al registrar usuario: ${response.statusText}`);
+      }
+  
+      const responseData = await response.json();
+      console.log('Usuario registrado:', responseData);
+
+      return responseData;
+    } catch (error) {
+      console.error('Error al registrar usuario:', error);
+      alert('Error al registrar usuario: ' + error.message); // Alerta en la app para ver el error
+    }
+  };
+
+  const handleAuthResponse = async (response) => {
+    if (response?.type === "success") {
+      const token = response.authentication.accessToken;
+      const user = await getUserInfo(token);
+      const adaptedUser = await registerUserWithBackend(user);
+      console.log("Usuario adaptado:", adaptedUser);
+      
       await AsyncStorage.setItem("@user", JSON.stringify(adaptedUser));
       setUserInfo(adaptedUser);
+      console.log("Usuario guardado en AsyncStorage:", userInfo);
     }
   };
 
