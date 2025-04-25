@@ -15,6 +15,8 @@ const ProfileScreen = ({ route, onLogout }) => {
   const [profileImage, setProfileImage] = useState(profileImageUrl || null);
   const [showLogout, setShowLogout] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [seguidores, setSeguidores] = useState(0);
+  const [seguidos, setSeguidos] = useState(0);
 
   const navigation = useNavigation();
 
@@ -152,8 +154,29 @@ const ProfileScreen = ({ route, onLogout }) => {
     }
   }, [userId, navigation]);
 
+  const obtenerConteos = async () => {
+    try {
+      const [resSeguidores, resSeguidos] = await Promise.all([
+        fetch(`${API_HOST}/seguidores/contar-seguidores/${userId}?estado=ACEPTADO`),
+        fetch(`${API_HOST}/seguidores/contar-seguidos/${userId}?estado=ACEPTADO`)
+      ]);
+  
+      const totalSeguidores = await resSeguidores.json();
+      const totalSeguidos = await resSeguidos.json();
+  
+      setSeguidores(totalSeguidores);
+      setSeguidos(totalSeguidos);
+    } catch (error) {
+      console.error("Error al obtener los conteos:", error);
+    }
+  };
+  
+
   useEffect(() => {
-    const unsubscribe = navigation.addListener('focus', fetchUserData);
+    const unsubscribe = navigation.addListener('focus', () => {
+      fetchUserData();
+      obtenerConteos();
+    });
     return unsubscribe;
   }, [fetchUserData, navigation]);
 
@@ -175,11 +198,11 @@ const ProfileScreen = ({ route, onLogout }) => {
           <Text style={styles.statLabel}>Publicaciones</Text>
         </View>
         <View style={styles.stats}>
-          <Text style={styles.statNumber}>200</Text>
+          <Text style={styles.statNumber}>{seguidores}</Text>
           <Text style={styles.statLabel}>Seguidores</Text>
         </View>
         <View style={styles.stats}>
-          <Text style={styles.statNumber}>150</Text>
+          <Text style={styles.statNumber}>{seguidos}</Text>
           <Text style={styles.statLabel}>Siguiendo</Text>
         </View>
       </View>

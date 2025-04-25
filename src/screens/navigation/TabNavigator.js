@@ -114,7 +114,7 @@ const TabNavigator = ({ userInfo, onLogout }) => {
 
     {/* Nueva pantalla de sugerencias */}
     <Tab.Screen
-        name="Suggestions"
+        name="People"
         options={{
           tabBarIcon: ({ focused }) => (
             <CustomTabBarIcon
@@ -126,7 +126,14 @@ const TabNavigator = ({ userInfo, onLogout }) => {
           ),
         }}
       >
-        {() => <SuggestedUsersScreen userInfo={userInfo} />}
+        {() => (
+        <SuggestedUsersScreen
+          route={{
+            params: { userId, givenName, email, profileImageUrl },
+          }}
+          onLogout={onLogout}
+        />
+      )}
       </Tab.Screen>
         
     </Tab.Navigator>
