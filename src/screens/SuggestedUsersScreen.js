@@ -5,7 +5,7 @@ import { useNavigation } from '@react-navigation/native';
 const API_URL = 'http://192.168.1.168:8080/api';
 
 const SuggestedUsersScreen = ({ route }) => {
-  const { userId } = route.params;
+  const { userId, givenName } = route.params;
   const navigation = useNavigation();
   const [searchTerm, setSearchTerm] = useState('');
   const [usuarios, setUsuarios] = useState([]);
@@ -144,6 +144,7 @@ const SuggestedUsersScreen = ({ route }) => {
       givenName: usuario.givenName,  // Nombre del usuario con el que chateas
       userId: userId,  // Tu userId
       otherUserId: usuario.userId,  // El userId del usuario con el que vas a chatear
+      username: route.params.givenName, // TU nombre
     });
   };
 

@@ -1,30 +1,51 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { io } from 'socket.io-client';
 
-const useChatSocket = (userId, otherUserId) => {
+const useChatSocket = (userId, otherUserId, username) => {
   const [messages, setMessages] = useState([]);
+  const socketRef = useRef(null);
 
   useEffect(() => {
     const socket = io('http://192.168.1.168:3000', {
-      auth: { userId, otherUserId },
+      auth: { userId, otherUserId, username },
     });
+
+    socketRef.current = socket;
 
     socket.on('connect', () => {
       console.log('Conectado al chat');
     });
 
-    socket.on('chat message', (msg, serverOffset, username) => {
-      setMessages((prevMessages) => [...prevMessages, { msg, user: username }]);
+    socket.on('chat message', (msg, serverOffset, senderUsername) => {
+      console.log(`[Cliente] Nuevo mensaje de ${senderUsername}: ${msg.message}`);
+
+      setMessages((prevMessages) => [
+        ...prevMessages,
+        { msg, 
+          user: senderUsername,
+          timestamp: msg.timestamp, 
+        },
+      ]);
     });
 
     return () => {
       socket.disconnect();
     };
-  }, [userId, otherUserId]);
+  }, [userId, otherUserId, username]);
 
   const sendMessage = (message) => {
-    const socket = io('http://192.168.1.168:3000');
-    socket.emit('chat message', message);
+    if (socketRef.current) {
+      const messagePayload = {
+        message,
+        from: userId,
+        to: otherUserId,
+        username,
+        timestamp: Date.now(), 
+      };
+      console.log('[HOOK] Enviando mensaje con payload:', messagePayload); // Log correcto
+  
+      socketRef.current.emit('chat message', messagePayload);
+    }
   };
 
   return { messages, sendMessage };
