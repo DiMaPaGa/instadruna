@@ -38,12 +38,12 @@ const AddPublicationScreen = ({ route }) => {
           text: 'Galería',
           onPress: async () => {
             const result = await ImagePicker.launchImageLibraryAsync({
-              mediaTypes: ImagePicker.MediaType.Images,
+              mediaTypes: ImagePicker.MediaTypeOptions.Images,
               allowsEditing: true,
               quality: 1,
             });
 
-            if (!result.canceled) {
+            if (!result.canceled && result.assets && result.assets.length > 0) {
               setSelectedImage(result.assets[0].uri);
             }
           },

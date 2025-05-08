@@ -10,6 +10,7 @@ import ProfileScreen from '../ProfileScreen';
 import AddPublicationScreen from '../AddPublicationScreen';
 import SuggestedUsersScreen from '../SuggestedUsersScreen'; 
 
+
 //componentes
 import CustomTabBarIcon from '../../components/CustomTabBarIcon';
 

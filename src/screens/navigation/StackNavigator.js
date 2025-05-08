@@ -7,6 +7,9 @@ import TicketFormScreen from '../TicketFormScreen';
 import ChatScreen from '../ChatScreen';
 import TabNavigator from './TabNavigator'; // Importa el TabNavigator
 
+import StoryViewer from '../StoryViewer';  // Importa la pantalla StoryViewer
+import AddStoryScreen from '../AddStoryScreen';  // Importa la pantalla AddStoryScreen
+
 const Stack = createNativeStackNavigator();
 
 const StackNavigator = ({ userInfo, onLogout, promptAsync, request }) => {
@@ -22,6 +25,26 @@ const StackNavigator = ({ userInfo, onLogout, promptAsync, request }) => {
             <Stack.Screen name="Main">
               {() => <TabNavigator userInfo={userInfo} onLogout={onLogout} />}
             </Stack.Screen>
+
+             {/* Aquí agregamos las pantallas de historia */}
+             <Stack.Screen name="StoryViewer">
+              {({ route, navigation }) => (
+                <StoryViewer 
+                  route={route} 
+                  navigation={navigation} 
+                  userInfo={userInfo} />
+              )}
+            </Stack.Screen>
+
+            <Stack.Screen name="AddStoryScreen">
+              {({ route, navigation }) => (
+                <AddStoryScreen 
+                  route={route} 
+                  navigation={navigation} 
+                  userInfo={userInfo} />
+              )}
+            </Stack.Screen>
+
             <Stack.Screen name="SinglePublication">
               {({ route, navigation }) => (
                 <SinglePublication

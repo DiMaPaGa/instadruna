@@ -14,14 +14,15 @@ import {
 } from "react-native";
 import PropTypes from "prop-types";
 import { useNavigation } from '@react-navigation/native';
+import StoryCarousel from "./StoryCarousel";
+import { useFocusEffect } from '@react-navigation/native';
 
 // Crear un FlatList animado
 const AnimatedFlatList = Animated.createAnimatedComponent(RNFlatList);
 
-
-
 const API_URL = "http://192.168.1.168:8080/api";
 const USER_API_URL = "http://192.168.1.168:8080/api/usuarios";
+const STORIES_API_URL = "http://192.168.1.168:8080/api/historias"; 
 
 const { width } = Dimensions.get("window");
 const fontSize = width * 0.1;  
@@ -38,6 +39,7 @@ const HomeScreen = ({ route, onLogout }) => {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState(null);
+  const [stories, setStories] = useState([]); // Estado para las historias
   const flatListRef = useRef(null);  // Referencia para FlatList
   const offsetY = useRef(0); // Usamos ref para almacenar la posición
 
@@ -81,17 +83,75 @@ const HomeScreen = ({ route, onLogout }) => {
       setLoading(false);
     }
   };
+
+  const fetchUserData = async (userId) => {
+    try {
+      const response = await fetch(`${USER_API_URL }/${userId}`); // Aquí deberías poner tu URL para obtener los detalles del usuario
+      if (!response.ok) {
+        throw new Error(`Error al obtener datos del usuario: ${response.statusText}`);
+      }
+      return await response.json();
+    } catch (error) {
+      console.error("Error al cargar los datos del usuario:", error);
+      return null;  // En caso de error, devolveremos null
+    }
+  };
+
+   // Cargar las historias
+   const fetchStories = async () => {
+    try {
+      const response = await fetch(STORIES_API_URL);
+
+      if (!response.ok) {
+        throw new Error(`Error en la respuesta: ${response.statusText}`);
+      }
+
+      const historiasData = await response.json();
+      console.log("Datos de las historias:", historiasData);
+
+     // Aquí haremos un mapa de historias y buscaremos los datos del autor
+     const historiasConUsuario = await Promise.all(historiasData.map(async (story) => {
+      const userData = await fetchUserData(story.userId);  // Usamos el userId para obtener el dato del usuario
+      return {
+        ...story,
+        autor: userData ? {
+          givenName: userData.givenName || "Anónimo", // Usamos el nombre del usuario o 'Anónimo' si no tiene nombre
+          profileImageUrl: userData.profileImageUrl || ""  // Usamos la imagen de perfil del usuario o una cadena vacía
+        } : {
+          givenName: "Anónimo",
+          profileImageUrl: ""
+        }
+      };
+    }));
+
+      setStories(historiasConUsuario || []); // Guardamos las historias, si existen
+    } catch (error) {
+      console.error("Error al cargar historias:", error);
+      setError("Ocurrió un error al cargar las historias.");
+    } finally {
+      setLoading(false);
+    }
+  };
   
 
   useEffect(() => {
     console.log("user_id recibido:", userId);
     fetchPublicaciones();
+    fetchStories();  // Llamamos a la función que carga las historias
   }, [userId]);
+
+  // Agrega el useFocusEffect después de este bloque
+  useFocusEffect(
+    React.useCallback(() => {
+      fetchStories();  // Esto recarga las historias cada vez que el usuario regresa
+    }, [])
+  );
 
 
   const handleRefresh = async () => {
     setRefreshing(true);
     await fetchPublicaciones();
+    await fetchStories();  // Refrescamos también las historias
     setRefreshing(false);
 
     // Después de actualizar las publicaciones, restauramos la posición
@@ -209,6 +269,19 @@ const HomeScreen = ({ route, onLogout }) => {
     );
   };
 
+  // Función para manejar el click en una historia
+  const handleStoryPress = (storyId) => {
+    // Busca la historia completa usando el ID
+    const selectedStory = stories.find(story => story.id === storyId);
+  
+    // Si encuentras la historia, navega a StoryViewer pasando la historia completa
+    if (selectedStory) {
+      navigation.navigate('StoryViewer', { story: selectedStory });
+    } else {
+      console.log("Historia no encontrada", storyId);
+    }
+  };
+
   return (
     <View style={styles.container}>
         <View style={styles.headerContainer}>
@@ -225,6 +298,26 @@ const HomeScreen = ({ route, onLogout }) => {
             </TouchableOpacity>
           </View>
       </View>
+
+      {/* Carrusel de historias */}
+      <View style={styles.carouselContainer}>
+        <TouchableOpacity onPress={() => navigation.navigate('AddStoryScreen', { userId })}>
+          <Image 
+            source={profileImageUrl ? { uri: profileImageUrl } : require("../../assets/images/iconUser.png")} 
+            style={styles.avatar}
+          />
+          <Text style={styles.addStoryText}>Añadir historia</Text>
+        </TouchableOpacity>
+
+        {/* Si el usuario tiene historias, las mostramos en el carrusel */}
+        {Array.isArray(stories) && stories.length > 0 && (
+          <StoryCarousel 
+            stories={stories} 
+            onStoryPress={handleStoryPress} // Asegúrate de que este funcione bien
+          />
+        )}
+      </View>
+
 
 
       {loading ? (
@@ -318,7 +411,7 @@ const styles = StyleSheet.create({
     marginHorizontal: 25,
   },
   listContent: {
-    paddingTop: 120,  // Esto le da espacio para el header
+    paddingTop: 30,  // Esto le da espacio para el header
     paddingBottom: 20,
   },
   errorText: {
@@ -417,6 +510,17 @@ const styles = StyleSheet.create({
     color: "#868686",
     fontWeight: "normal",
     marginLeft: 15,
+  },
+  carouselContainer: {
+    marginTop: 120,  // Ajusta el margen para que no se solape con el header
+    alignItems: 'center',
+  },
+  addStoryText: {
+    fontSize: 14,
+    color: "#9FC63B",
+    marginTop: 5,
+    textAlign: 'center',
+    fontFamily: "AsapCondensed-Regular",
   },
   logoutButton: {
     backgroundColor: "#9FC63B",
