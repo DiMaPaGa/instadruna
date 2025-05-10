@@ -29,7 +29,6 @@ const StoryViewer = () => {
   const progress = useRef(new Animated.Value(0)).current;
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const imageFadeAnim = useRef(new Animated.Value(1)).current;
-  const intervalRef = useRef(null);
 
   useEffect(() => {
     Animated.timing(fadeAnim, {
@@ -91,7 +90,7 @@ const StoryViewer = () => {
     );
   }
 
-  const total = story.imagenesUrls.length;
+  
   const titleText = story.imagenesUrls[0]?.texto || '';
 
   return (
@@ -154,7 +153,7 @@ const StoryViewer = () => {
             style={[styles.carouselImage, { opacity: imageFadeAnim }]}
           />
 
-          {/* Zona izquierda para retroceder */}
+          
           <Pressable
             onPressIn={() => setIsPaused(true)}
             onPressOut={() => setIsPaused(false)}
@@ -168,7 +167,7 @@ const StoryViewer = () => {
             style={styles.leftZone}
           />
 
-          {/* Zona derecha para avanzar */}
+      
           <Pressable
             onPressIn={() => setIsPaused(true)}
             onPressOut={() => setIsPaused(false)}
@@ -204,7 +203,7 @@ const styles = StyleSheet.create({
     marginTop: 40,
     flexDirection: 'row',
     alignItems: 'center',
-    paddingLeft: 60, // deja espacio para la flecha
+    paddingLeft: 60, 
     marginBottom: 10,
   },
   avatar: {

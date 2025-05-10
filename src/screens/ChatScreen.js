@@ -14,7 +14,7 @@ dayjs.extend(isToday);
 dayjs.extend(isYesterday);
 
 
-// 🚀 NUEVAS funciones de cifrado y descifrado (compatibles con React Native)
+// NUEVAS funciones de cifrado y descifrado (compatibles con React Native)
 const encryptMessage = (text) => {
   return btoa(unescape(encodeURIComponent(text)));
 };
